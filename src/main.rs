@@ -3,18 +3,14 @@
 
 use defmt::{info, error, panic};
 use embassy_executor::Spawner;
-use embassy_stm32::{bind_interrupts, peripherals, usb_otg, Config};
-use embassy_stm32::adc::{Adc, Resolution, SampleTime};
-use embassy_stm32::gpio::{Level, Output, OutputType, Pin, Speed};
-use embassy_stm32::peripherals::{DMA1_CH4, DMA1_CH5, I2C1, PD4, TIM1, TIM3, TIM4, USB_OTG_HS};
+use embassy_stm32::{bind_interrupts, usb_otg, Config};
+use embassy_stm32::adc::{Adc, SampleTime, Resolution};
+use embassy_stm32::gpio::{AnyPin, Level, Output, OutputType, Speed};
+use embassy_stm32::peripherals::{DMA1_CH4, DMA1_CH5, I2C1, TIM3, TIM4, USB_OTG_HS};
 use embassy_stm32::time::{Hertz, khz};
-use embassy_stm32::timer::{Channel, OutputPolarity};
+use embassy_stm32::timer::{CaptureCompare16bitInstance, Channel, OutputPolarity};
 use embassy_stm32::timer::simple_pwm::{PwmPin, SimplePwm};
-use embassy_time::{Timer, /*Instant,*/ Delay};
-// use embassy_embedded_hal::shared_bus::blocking::i2c::I2cDevice;
-// use embassy_stm32::mode::Async;
-// use static_cell::StaticCell;
-// use embassy_sync::blocking_mutex::NoopMutex;
+use embassy_time::{Timer, Delay};
 use embassy_stm32::i2c::{self, Error, I2c};
 
 use embassy_futures::join::*;
@@ -51,8 +47,20 @@ bind_interrupts!(struct Irqs {
 
 static SLIDER_1_MEAS: AtomicU16 = AtomicU16::new(0);
 static SLIDER_1_DES: AtomicU16 = AtomicU16::new(0);
-
 static SLIDER_1_TOUCH: AtomicBool = AtomicBool::new(false);
+static SLIDER_2_MEAS: AtomicU16 = AtomicU16::new(0);
+static SLIDER_2_DES: AtomicU16 = AtomicU16::new(0);
+static SLIDER_2_TOUCH: AtomicBool = AtomicBool::new(false);
+static SLIDER_3_MEAS: AtomicU16 = AtomicU16::new(0);
+static SLIDER_3_DES: AtomicU16 = AtomicU16::new(0);
+static SLIDER_3_TOUCH: AtomicBool = AtomicBool::new(false);
+static SLIDER_4_MEAS: AtomicU16 = AtomicU16::new(0);
+static SLIDER_4_DES: AtomicU16 = AtomicU16::new(0);
+static SLIDER_4_TOUCH: AtomicBool = AtomicBool::new(false);
+static SLIDER_5_MEAS: AtomicU16 = AtomicU16::new(0);
+static SLIDER_5_DES: AtomicU16 = AtomicU16::new(0);
+static SLIDER_5_TOUCH: AtomicBool = AtomicBool::new(false);
+
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -64,10 +72,13 @@ async fn main(spawner: Spawner) {
 
     // ADC Initialization
     let mut delay = Delay;
-    let mut adc = Adc::new(p.ADC1, &mut delay);
-    adc.set_sample_time(SampleTime::Cycles16_5);
-    adc.set_resolution(Resolution::EightBit);
-
+    // let mut adc1 = Adc::new(p.ADC1, &mut delay);
+    let mut adc2 = Adc::new(p.ADC2, &mut delay);
+    // adc1.set_sample_time(SampleTime::Cycles16_5);
+    // adc1.set_resolution(Resolution::EightBit);
+    adc2.set_sample_time(SampleTime::Cycles16_5);
+    adc2.set_resolution(Resolution::EightBit);
+    
     // Capacitive Touch Sensor Initialization
     let mut i2c = I2c::new(
         p.I2C1,
@@ -107,25 +118,28 @@ async fn main(spawner: Spawner) {
         Err(e) => error!("I2c Error: {:?}", e),
     }
 
-    match i2c.write(ADDRESS, &[CALIBRATE, 5]).await {
-        Ok(()) => info!("Started calibration"),
-        Err(Error::Timeout) => error!("Operation timed out"),
-        Err(e) => error!("I2c Error: {:?}", e),
-    }
-
-    loop {
-        match i2c.write_read(ADDRESS, &[DETECTION_STATUS], &mut data).await {
-            // Ok(()) => info!("Detection Status: {:#010b}", data[0]),
-            Ok(()) => (),
+    for i in 0..1 {
+        match i2c.write(ADDRESS, &[CALIBRATE, 5]).await {
+            Ok(()) => info!("Started calibration"),
             Err(Error::Timeout) => error!("Operation timed out"),
             Err(e) => error!("I2c Error: {:?}", e),
         }
-        let calibration = ((1 << 7) & data[0]) > 0;
-        if !calibration {
-            info!("Calibration finished");
-            break;
-        } else {
-            Timer::after_millis(50).await;
+
+        loop {
+            match i2c.write_read(ADDRESS, &[DETECTION_STATUS], &mut data).await {
+                // Ok(()) => info!("Detection Status: {:#010b}", data[0]),
+                Ok(()) => (),
+                Err(Error::Timeout) => error!("Operation timed out"),
+                Err(e) => error!("I2c Error: {:?}", e),
+            }
+            let calibration = ((1 << 7) & data[0]) > 0;
+            if !calibration {
+                info!("Calibration finished");
+                break;
+            } else {
+                info!("Calibration not finished");
+                Timer::after_millis(50).await;
+            }
         }
     }
 
@@ -133,25 +147,100 @@ async fn main(spawner: Spawner) {
     let mot1_sleep = p.PD4;
     let mot1_in1 = p.PD12;
     let mot1_in2 = p.PD13;
+    let mot2_sleep = p.PD5;
+    let mot2_in1 = p.PD14;
+    let mot2_in2 = p.PD15;
+    let mot3_sleep = p.PD6;
+    let mot3_in1 = p.PE9;
+    let mot3_in2 = p.PE11;
+    let mot4_sleep = p.PD7;
+    let mot4_in1 = p.PB4;
+    let mot4_in2 = p.PB5;
+    let mot5_sleep = p.PD8;
+    let mot5_in1 = p.PB0;
+    let mot5_in2 = p.PB1;
 
-    let mut sleep = Output::new(mot1_sleep, Level::High, Speed::Low);
-    sleep.set_high();
+    let mut sleep1 = Output::new(mot1_sleep, Level::High, Speed::Low);
+    let mut sleep2 = Output::new(mot2_sleep, Level::High, Speed::Low);
+    let mut sleep3 = Output::new(mot3_sleep, Level::High, Speed::Low);
+    let mut sleep4 = Output::new(mot4_sleep, Level::High, Speed::Low);
+    let mut sleep5 = Output::new(mot5_sleep, Level::High, Speed::Low);
+    sleep1.set_high();
+    sleep2.set_high();
+    sleep3.set_high();
+    sleep4.set_high();
+    sleep5.set_high();
 
-    let ch1 = PwmPin::new_ch1(mot1_in1, OutputType::PushPull);
-    let ch2 = PwmPin::new_ch2(mot1_in2, OutputType::PushPull);
-    let mut pwm = SimplePwm::new(p.TIM4, Some(ch1), Some(ch2), None, None, khz(20), Default::default());
-    pwm.set_polarity(Channel::Ch1, OutputPolarity::ActiveLow); // inverted PWM
-    pwm.set_polarity(Channel::Ch2, OutputPolarity::ActiveLow);
+    let mot1_ch1 = PwmPin::new_ch1(mot1_in1, OutputType::PushPull);
+    let mot1_ch2 = PwmPin::new_ch2(mot1_in2, OutputType::PushPull);
+    let mut mot1_pwm = SimplePwm::new(p.TIM4, Some(mot1_ch1), Some(mot1_ch2), None, None, khz(20), Default::default());
+    let mot2_ch1 = PwmPin::new_ch3(mot2_in1, OutputType::PushPull);
+    let mot2_ch2 = PwmPin::new_ch4(mot2_in2, OutputType::PushPull);
+    let mut mot2_pwm = SimplePwm::new(unsafe {TIM4::steal()}, None, None, Some(mot2_ch1), Some(mot2_ch2), khz(20), Default::default());
+    let mot3_ch1 = PwmPin::new_ch1(mot3_in1, OutputType::PushPull);
+    let mot3_ch2 = PwmPin::new_ch2(mot3_in2, OutputType::PushPull);
+    let mut mot3_pwm = SimplePwm::new(p.TIM1, Some(mot3_ch1), Some(mot3_ch2), None, None, khz(20), Default::default());
+    let mot4_ch1 = PwmPin::new_ch1(mot4_in1, OutputType::PushPull);
+    let mot4_ch2 = PwmPin::new_ch2(mot4_in2, OutputType::PushPull);
+    let mut mot4_pwm = SimplePwm::new(p.TIM3, Some(mot4_ch1), Some(mot4_ch2), None, None, khz(20), Default::default());
+    let mot5_ch1 = PwmPin::new_ch3(mot5_in1, OutputType::PushPull);
+    let mot5_ch2 = PwmPin::new_ch4(mot5_in2, OutputType::PushPull);
+    let mut mot5_pwm = SimplePwm::new(unsafe {TIM3::steal()}, None, None, Some(mot5_ch1), Some(mot5_ch2), khz(20), Default::default());
+    
+    mot1_pwm.set_polarity(Channel::Ch1, OutputPolarity::ActiveLow); // inverted PWM
+    mot1_pwm.set_polarity(Channel::Ch2, OutputPolarity::ActiveLow);
+    mot2_pwm.set_polarity(Channel::Ch3, OutputPolarity::ActiveLow);
+    mot2_pwm.set_polarity(Channel::Ch4, OutputPolarity::ActiveLow);
+    mot3_pwm.set_polarity(Channel::Ch1, OutputPolarity::ActiveLow);
+    mot3_pwm.set_polarity(Channel::Ch2, OutputPolarity::ActiveLow);
+    mot4_pwm.set_polarity(Channel::Ch1, OutputPolarity::ActiveLow);
+    mot4_pwm.set_polarity(Channel::Ch2, OutputPolarity::ActiveLow);
+    mot5_pwm.set_polarity(Channel::Ch3, OutputPolarity::ActiveLow);
+    mot5_pwm.set_polarity(Channel::Ch4, OutputPolarity::ActiveLow);
 
-    enable_motor(&mut pwm, 'a');
+    enable_motor(&mut mot1_pwm, 'a');
+    enable_motor(&mut mot2_pwm, 'b');
+    enable_motor(&mut mot3_pwm, 'a');
+    enable_motor(&mut mot4_pwm, 'a');
+    enable_motor(&mut mot5_pwm, 'b');
 
-    let duty = 80_i16;
+    // let duty = 80_i16;
 
-    let desired_position = SLIDER_1_DES.load(Ordering::Relaxed);
-    let mut pid = Pid::new(desired_position as f32, 100_f32);
-    pid.p(0.75, 100_f32);
-    pid.i(1.7, 25_f32);
-    spawner.spawn(get_touch(i2c, sleep)).unwrap();
+    let desired_position1 = SLIDER_1_DES.load(Ordering::Relaxed);
+    let desired_position2 = SLIDER_2_DES.load(Ordering::Relaxed);
+    let desired_position3 = SLIDER_3_DES.load(Ordering::Relaxed);
+    let desired_position4 = SLIDER_4_DES.load(Ordering::Relaxed);
+    let desired_position5 = SLIDER_5_DES.load(Ordering::Relaxed);
+    
+    let mut pid1 = Pid::new(desired_position1 as f32, 100_f32);
+    let mut pid2 = Pid::new(desired_position2 as f32, 100_f32);
+    let mut pid3 = Pid::new(desired_position3 as f32, 100_f32);
+    let mut pid4 = Pid::new(desired_position4 as f32, 100_f32);
+    let mut pid5 = Pid::new(desired_position5 as f32, 100_f32);
+
+    let pid_p = 0.75;
+    let pid_p_lim = 100_f32;
+    let pid_i = 1.7;
+    let pid_i_lim = 25_f32;
+    let pid_d = 0.0;
+    let pid_d_lim = 0_f32;
+    pid1.p(pid_p, pid_p_lim);
+    pid1.i(pid_i, pid_i_lim);
+    pid1.d(pid_d, pid_d_lim);
+    pid2.p(pid_p, pid_p_lim);
+    pid2.i(pid_i, pid_i_lim);
+    pid2.d(pid_d, pid_d_lim);
+    pid3.p(pid_p, pid_p_lim);
+    pid3.i(pid_i, pid_i_lim);
+    pid3.d(pid_d, pid_d_lim);
+    pid4.p(pid_p, pid_p_lim);
+    pid4.i(pid_i, pid_i_lim);
+    pid4.d(pid_d, pid_d_lim);
+    pid5.p(pid_p, pid_p_lim);
+    pid5.i(pid_i, pid_i_lim);
+    pid5.d(pid_d, pid_d_lim);
+    
+    spawner.spawn(get_touch(i2c, sleep1.degrade(), sleep2.degrade(), sleep3.degrade(), sleep4.degrade(), sleep5.degrade())).unwrap();
 
 
     // USB Initialization
@@ -185,7 +274,7 @@ async fn main(spawner: Spawner) {
         &mut [], // no msos descriptors
         &mut control_buf,
     );
-    let mut class = MidiClass::new(&mut builder, 1, 1, 64);
+    let class = MidiClass::new(&mut builder, 1, 1, 64);
     // The `MidiClass` can be split into `Sender` and `Receiver`, to be used in separate tasks.
     let (mut sender, mut receiver) = class.split();
     let mut usb = builder.build();
@@ -212,23 +301,57 @@ async fn main(spawner: Spawner) {
 
     let slider_fut = async {
         loop {
-            let measured = adc.read(&mut p.PC0) >> 1;
-            // info!("measured: {}", measured);
+            let mot1_measured = adc2.read(&mut p.PC0) >> 1;
+            let mot2_measured = adc2.read(&mut p.PC1) >> 1;
+            let mot3_measured = adc2.read(&mut p.PC2_C) >> 1;
+            let mot4_measured = adc2.read(&mut p.PC3_C) >> 1;
+            let mot5_measured = adc2.read(&mut p.PC4) >> 1;
+            // info!("measured: {}, {}, {}, {}, {}", mot1_measured, mot2_measured, mot3_measured, mot4_measured, mot5_measured);
             
-            SLIDER_1_MEAS.store(measured, Ordering::Relaxed);
-            if SLIDER_1_TOUCH.load(Ordering::Relaxed) {
-                SLIDER_1_DES.store(measured, Ordering::Relaxed);
-            }
+            SLIDER_1_MEAS.store(mot1_measured, Ordering::Relaxed);
+            if SLIDER_1_TOUCH.load(Ordering::Relaxed) { SLIDER_1_DES.store(mot1_measured, Ordering::Relaxed); }
+            SLIDER_2_MEAS.store(mot2_measured, Ordering::Relaxed);
+            if SLIDER_2_TOUCH.load(Ordering::Relaxed) { SLIDER_2_DES.store(mot2_measured, Ordering::Relaxed); }
+            SLIDER_3_MEAS.store(mot3_measured, Ordering::Relaxed);
+            if SLIDER_3_TOUCH.load(Ordering::Relaxed) { SLIDER_3_DES.store(mot3_measured, Ordering::Relaxed); }
+            SLIDER_4_MEAS.store(mot4_measured, Ordering::Relaxed);
+            if SLIDER_4_TOUCH.load(Ordering::Relaxed) { SLIDER_4_DES.store(mot4_measured, Ordering::Relaxed); }
+            SLIDER_5_MEAS.store(mot5_measured, Ordering::Relaxed);
+            if SLIDER_5_TOUCH.load(Ordering::Relaxed) { SLIDER_5_DES.store(mot5_measured, Ordering::Relaxed); }
 
-            pid.setpoint(SLIDER_1_DES.load(Ordering::Relaxed) as f32);
-            let output = pid.next_control_output(measured as f32);
-            let mut correction = output.output as i16;
-            if correction.abs() > 5_i16 {
-                correction += 20_i16 * correction.signum();
-            }
+            pid1.setpoint(SLIDER_1_DES.load(Ordering::Relaxed) as f32);
+            let output1 = pid1.next_control_output(mot1_measured as f32);
+            let mut correction1 = output1.output as i16;
+            if correction1.abs() > 5_i16 { correction1 += 20_i16 * correction1.signum(); }
+            set_motor_duty(&mut mot1_pwm, 'a', correction1);
             
-            set_motor_duty(&mut pwm, 'a', correction);
+            pid2.setpoint(SLIDER_2_DES.load(Ordering::Relaxed) as f32);
+            let output2 = pid2.next_control_output(mot2_measured as f32);
+            let mut correction2 = output2.output as i16;
+            if correction2.abs() > 5_i16 { correction2 += 20_i16 * correction2.signum(); }
+            set_motor_duty(&mut mot2_pwm, 'b', correction2);
             
+            pid3.setpoint(SLIDER_3_DES.load(Ordering::Relaxed) as f32);
+            let output3 = pid3.next_control_output(mot3_measured as f32);
+            let mut correction3 = output3.output as i16;
+            if correction3.abs() > 5_i16 { correction3 += 20_i16 * correction3.signum(); }
+            set_motor_duty(&mut mot3_pwm, 'a', correction3);
+            
+            pid4.setpoint(SLIDER_4_DES.load(Ordering::Relaxed) as f32);
+            let output4 = pid4.next_control_output(mot4_measured as f32);
+            let mut correction4 = output4.output as i16;
+            if correction4.abs() > 5_i16 { correction4 += 20_i16 * correction4.signum(); }
+            set_motor_duty(&mut mot4_pwm, 'a', correction4);
+            
+            pid5.setpoint(SLIDER_5_DES.load(Ordering::Relaxed) as f32);
+            let output5 = pid5.next_control_output(mot5_measured as f32);
+            let mut correction5 = output5.output as i16;
+            if correction5.abs() > 5_i16 { correction5 += 20_i16 * correction5.signum(); }
+            set_motor_duty(&mut mot5_pwm, 'b', correction5);
+
+            // info!("Setpoint: {}, {}, {}, {}, {}", pid1.setpoint, pid2.setpoint, pid3.setpoint, pid4.setpoint, pid5.setpoint);
+            // info!("Correction: {}, {}, {}, {}, {}", correction1, correction2, correction3, correction4, correction5);
+
             Timer::after_millis(35).await;
         }
     };
@@ -255,27 +378,73 @@ async fn midi_recv<'d, T: Instance + 'd>(class: &mut midi::Receiver<'d, Driver<'
         let n = class.read_packet(&mut buf).await?;
         let data = &buf[..n];
         // info!("data: {:x}", data);
-        SLIDER_1_DES.store(data[3] as u16, Ordering::Relaxed);
+        // info!("channel: {}", data[2]);
+        
+        if data[0] == 0xb && data[1] == 0xb0 { // Cable 0, B for control change
+            for i in (0..n).step_by(4) {
+                // info!("data[{}]: {:x}, {:x}, {:x}, {:x}", i, data[i], data[i+1], data[i+2], data[i+3]);
+                if data[i+2] == 16 { SLIDER_1_DES.store(data[i+3] as u16, Ordering::Relaxed); } // Decimal channel 16
+                if data[i+2] == 17 { SLIDER_2_DES.store(data[i+3] as u16, Ordering::Relaxed); } // Decimal channel 17
+                if data[i+2] == 18 { SLIDER_3_DES.store(data[i+3] as u16, Ordering::Relaxed); } // Decimal channel 18
+                if data[i+2] == 19 { SLIDER_4_DES.store(data[i+3] as u16, Ordering::Relaxed); } // Decimal channel 19
+                if data[i+2] == 80 { SLIDER_5_DES.store(data[i+3] as u16, Ordering::Relaxed); } // Decimal channel 80
+            }
+        }
     }
 }
 
 async fn midi_send<'d, T: Instance + 'd>(class: &mut midi::Sender<'d, Driver<'d, T>>) -> Result<(), Disconnected> {
-    let mut previous_position: u8 = 0;
+    let mut previous_position1: u8 = 0;
+    let mut previous_position2: u8 = 0;
+    let mut previous_position3: u8 = 0;
+    let mut previous_position4: u8 = 0;
+    let mut previous_position5: u8 = 0;
+    
     loop {
-        let slider_position = (SLIDER_1_MEAS.load(Ordering::Relaxed).clamp(0,127)) as u8;
-        if (previous_position != slider_position) && (SLIDER_1_TOUCH.load(Ordering::Relaxed)) {
-            class.write_packet(&[0x0b, 0xb0, 16, slider_position]).await?; // First byte is cable 0, B for control change
-            previous_position = slider_position;
+        let slider_position1 = SLIDER_1_MEAS.load(Ordering::Relaxed).clamp(0, 127) as u8;
+        if (previous_position1 != slider_position1) && (SLIDER_1_TOUCH.load(Ordering::Relaxed)) {
+            class.write_packet(&[0x0b, 0xb0, 16, slider_position1]).await?; // First byte is cable 0, B for control change
+            previous_position1 = slider_position1;
         }
+        let slider_position2 = SLIDER_2_MEAS.load(Ordering::Relaxed).clamp(0, 127) as u8;
+        if (previous_position2 != slider_position2) && (SLIDER_2_TOUCH.load(Ordering::Relaxed)) {
+            class.write_packet(&[0x0b, 0xb0, 17, slider_position2]).await?; // First byte is cable 0, B for control change
+            previous_position2 = slider_position2;
+        }
+        let slider_position3 = SLIDER_3_MEAS.load(Ordering::Relaxed).clamp(0, 127) as u8;
+        if (previous_position3 != slider_position3) && (SLIDER_3_TOUCH.load(Ordering::Relaxed)) {
+            class.write_packet(&[0x0b, 0xb0, 18, slider_position3]).await?; // First byte is cable 0, B for control change
+            previous_position3 = slider_position3;
+        }
+        let slider_position4 = SLIDER_4_MEAS.load(Ordering::Relaxed).clamp(0, 127) as u8;
+        if (previous_position4 != slider_position4) && (SLIDER_4_TOUCH.load(Ordering::Relaxed)) {
+            class.write_packet(&[0x0b, 0xb0, 19, slider_position4]).await?; // First byte is cable 0, B for control change
+            previous_position4 = slider_position4;
+        }
+        let slider_position5 = SLIDER_5_MEAS.load(Ordering::Relaxed).clamp(0, 127) as u8;
+        if (previous_position5 != slider_position5) && (SLIDER_5_TOUCH.load(Ordering::Relaxed)) {
+            class.write_packet(&[0x0b, 0xb0, 80, slider_position5]).await?; // First byte is cable 0, B for control change
+            previous_position5 = slider_position5;
+        }
+        
         Timer::after_millis(20).await;
     }
 }
 
 #[embassy_executor::task]
-async fn get_touch(i2c: I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, sleep: Output<'static, PD4>) {
+async fn get_touch(i2c: I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, sleep1: Output<'static, AnyPin>, sleep2: Output<'static, AnyPin>, sleep3: Output<'static, AnyPin>, sleep4: Output<'static, AnyPin>, sleep5: Output<'static, AnyPin>) {
     let mut data = [0u8; 1];
     let mut i2c_task = i2c;
-    let mut sleep_task = sleep;
+    let mut sleep1_obj = sleep1;
+    let mut sleep2_obj = sleep2;
+    let mut sleep3_obj = sleep3;
+    let mut sleep4_obj = sleep4;
+    let mut sleep5_obj = sleep5;
+    let mut sleep1_prev = false;
+    let mut sleep2_prev = false;
+    let mut sleep3_prev = false;
+    let mut sleep4_prev = false;
+    let mut sleep5_prev = false;
     loop {
         match i2c_task.write_read(ADDRESS, &[KEY_STATUS], &mut data).await {
             // Ok(()) => info!("Key Status: {:#010b}", data[0]),
@@ -285,22 +454,34 @@ async fn get_touch(i2c: I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, sleep: Output<'s
         }
         let mot1_sense = ((1 << 4) & data[0]) > 0;
         SLIDER_1_TOUCH.store(mot1_sense, Ordering::Relaxed);
-        // let mot2_sense = ((1 << 3) & data[0]) > 0;
-        // let mot3_sense = ((1 << 2) & data[0]) > 0;
-        // let mot4_sense = ((1 << 1) & data[0]) > 0;
-        // let mot5_sense = ((1 << 0) & data[0]) > 0;
-        if mot1_sense {
-            // info!("Mot1 touched");
-            sleep_task.set_low();
-        } else {
-            sleep_task.set_high();
-        }
+        let mot2_sense = ((1 << 3) & data[0]) > 0;
+        SLIDER_2_TOUCH.store(mot2_sense, Ordering::Relaxed);
+        let mot3_sense = ((1 << 2) & data[0]) > 0;
+        SLIDER_3_TOUCH.store(mot3_sense, Ordering::Relaxed);
+        let mot4_sense = ((1 << 1) & data[0]) > 0;
+        SLIDER_4_TOUCH.store(mot4_sense, Ordering::Relaxed);
+        let mot5_sense = ((1 << 0) & data[0]) > 0;
+        SLIDER_5_TOUCH.store(mot5_sense, Ordering::Relaxed);
+        // info!("Touch: {}, {}, {}, {}, {}", mot1_sense, mot2_sense, mot3_sense, mot4_sense, mot5_sense);
+        
+        if sleep1_prev { sleep1_obj.set_low(); } else { sleep1_obj.set_high(); }
+        if sleep2_prev { sleep2_obj.set_low(); } else { sleep2_obj.set_high(); }
+        if sleep3_prev { sleep3_obj.set_low(); } else { sleep3_obj.set_high(); }
+        if sleep4_prev { sleep4_obj.set_low(); } else { sleep4_obj.set_high(); }
+        if sleep5_prev { sleep5_obj.set_low(); } else { sleep5_obj.set_high(); }
+        
+        sleep1_prev = mot1_sense;
+        sleep2_prev = mot2_sense;
+        sleep3_prev = mot3_sense;
+        sleep4_prev = mot4_sense;
+        sleep5_prev = mot5_sense;
+        
         Timer::after_millis(25).await;
     }
 }
 
 /// Enable a motor by enabling the PWM channels
-fn enable_motor(pwm: &mut SimplePwm<TIM4>, motor: char) {
+fn enable_motor<T: CaptureCompare16bitInstance>(pwm: &mut SimplePwm<T>, motor: char) {
     let channels = match motor {
         'a' => [Channel::Ch1, Channel::Ch2],
         'b' => [Channel::Ch3, Channel::Ch4],
@@ -311,8 +492,9 @@ fn enable_motor(pwm: &mut SimplePwm<TIM4>, motor: char) {
     pwm.enable(channels[1]);
 }
 
+/*
 /// Disable a motor by disabling the PWM channels
-fn disable_motor(pwm: &mut SimplePwm<TIM4>, motor: char) {
+fn disable_motor<T: CaptureCompare16bitInstance>(pwm: &mut SimplePwm<T>, motor: char) {
     let channels = match motor {
         'a' => [Channel::Ch1, Channel::Ch2],
         'b' => [Channel::Ch3, Channel::Ch4],
@@ -323,9 +505,10 @@ fn disable_motor(pwm: &mut SimplePwm<TIM4>, motor: char) {
     pwm.disable(channels[1]);
     set_motor_duty(pwm, motor, 0);
 }
+*/
 
 /// Set the duty cycle of a motor
-fn set_motor_duty(pwm: &mut SimplePwm<TIM4>, motor: char, duty: i16) {
+fn set_motor_duty<T: CaptureCompare16bitInstance>(pwm: &mut SimplePwm<T>, motor: char, duty: i16) {
     let clamped_duty = duty.clamp(-100, 100) as i32;
     let max = pwm.get_max_duty() as u32;
 
