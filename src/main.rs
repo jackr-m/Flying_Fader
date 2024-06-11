@@ -30,11 +30,11 @@ const HARDWARE_ID: u8 = 0x00;
 const FIRMWARE_VERSION: u8 = 0x01;
 const DETECTION_STATUS: u8 = 0x02;
 const KEY_STATUS: u8 = 0x03;
-/*const KEY_0_NTHR: u8 = 32;
-const NTHR: u8 = 20;
-const KEY_5_NTHR: u8 = 37;*/
+const KEY_0_NTHR: u8 = 32;
+const NTHR: u8 = 30;
+// const KEY_5_NTHR: u8 = 37;
 const KEY_0_AKS: u8 = 39;
-const AKE_AKS: u8 = 0b001000_00; // 8 sample averaging, no adjacent key suppression
+const AKE_AKS: u8 = 0b100000_00; // 32 sample averaging, no adjacent key suppression
 const MAX_ON_DURATION: u8 = 55;
 const CALIBRATE: u8 = 56;
 
@@ -118,7 +118,21 @@ async fn main(spawner: Spawner) {
         Err(e) => error!("I2c Error: {:?}", e),
     }
 
-    for i in 0..1 {
+    for i in 0..5 {
+        match i2c.write(ADDRESS, &[KEY_0_NTHR+i, NTHR]).await {
+            Ok(()) => info!("Set Key {} NTHR", i),
+            Err(Error::Timeout) => error!("Operation timed out"),
+            Err(e) => error!("I2c Error: {:?}", e),
+        }
+        /*let mut data = [0u8; 1];
+        match i2c.write_read(ADDRESS, &[KEY_0_NTHR+i], &mut data).await {
+            Ok(()) => info!("Key {} NTHR: {}", i, data[0]),
+            Err(Error::Timeout) => error!("Operation timed out"),
+            Err(e) => error!("I2c Error: {:?}", e),
+        }*/
+    }
+
+    for _i in 0..1 {
         match i2c.write(ADDRESS, &[CALIBRATE, 5]).await {
             Ok(()) => info!("Started calibration"),
             Err(Error::Timeout) => error!("Operation timed out"),
@@ -218,7 +232,7 @@ async fn main(spawner: Spawner) {
     let mut pid4 = Pid::new(desired_position4 as f32, 100_f32);
     let mut pid5 = Pid::new(desired_position5 as f32, 100_f32);
 
-    let pid_p = 0.75;
+    let pid_p = 0.85; // 0.75
     let pid_p_lim = 100_f32;
     let pid_i = 1.7;
     let pid_i_lim = 25_f32;
@@ -440,15 +454,10 @@ async fn get_touch(i2c: I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, sleep1: Output<'
     let mut sleep3_obj = sleep3;
     let mut sleep4_obj = sleep4;
     let mut sleep5_obj = sleep5;
-    let mut sleep1_prev = false;
-    let mut sleep2_prev = false;
-    let mut sleep3_prev = false;
-    let mut sleep4_prev = false;
-    let mut sleep5_prev = false;
     loop {
         match i2c_task.write_read(ADDRESS, &[KEY_STATUS], &mut data).await {
-            // Ok(()) => info!("Key Status: {:#010b}", data[0]),
-            Ok(()) => (),
+            Ok(()) => info!("Key Status: {:#010b}", data[0]),
+            // Ok(()) => (),
             Err(Error::Timeout) => error!("Operation timed out"),
             Err(e) => error!("I2c Error: {:?}", e),
         }
@@ -463,18 +472,12 @@ async fn get_touch(i2c: I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, sleep1: Output<'
         let mot5_sense = ((1 << 0) & data[0]) > 0;
         SLIDER_5_TOUCH.store(mot5_sense, Ordering::Relaxed);
         // info!("Touch: {}, {}, {}, {}, {}", mot1_sense, mot2_sense, mot3_sense, mot4_sense, mot5_sense);
-        
-        if sleep1_prev { sleep1_obj.set_low(); } else { sleep1_obj.set_high(); }
-        if sleep2_prev { sleep2_obj.set_low(); } else { sleep2_obj.set_high(); }
-        if sleep3_prev { sleep3_obj.set_low(); } else { sleep3_obj.set_high(); }
-        if sleep4_prev { sleep4_obj.set_low(); } else { sleep4_obj.set_high(); }
-        if sleep5_prev { sleep5_obj.set_low(); } else { sleep5_obj.set_high(); }
-        
-        sleep1_prev = mot1_sense;
-        sleep2_prev = mot2_sense;
-        sleep3_prev = mot3_sense;
-        sleep4_prev = mot4_sense;
-        sleep5_prev = mot5_sense;
+
+        if mot1_sense { sleep1_obj.set_low(); } else { sleep1_obj.set_high(); }
+        if mot2_sense { sleep2_obj.set_low(); } else { sleep2_obj.set_high(); }
+        if mot3_sense { sleep3_obj.set_low(); } else { sleep3_obj.set_high(); }
+        if mot4_sense { sleep4_obj.set_low(); } else { sleep4_obj.set_high(); }
+        if mot5_sense { sleep5_obj.set_low(); } else { sleep5_obj.set_high(); }
         
         Timer::after_millis(25).await;
     }
