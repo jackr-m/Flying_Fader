@@ -418,7 +418,7 @@ impl From<EndpointError> for Disconnected {
         }
     }
 }
-
+/// Output MIDI CC signals over USB
 async fn midi_recv<'d, T: Instance + 'd>(class: &mut midi::Receiver<'d, Driver<'d, T>>) -> Result<(), Disconnected> {
     let mut buf = [0; 64];
     loop {
@@ -440,6 +440,7 @@ async fn midi_recv<'d, T: Instance + 'd>(class: &mut midi::Receiver<'d, Driver<'
     }
 }
 
+/// Receive MIDI CC signals over USB
 async fn midi_send<'d, T: Instance + 'd>(class: &mut midi::Sender<'d, Driver<'d, T>>) -> Result<(), Disconnected> {
     let mut previous_position1: u8 = 0;
     let mut previous_position2: u8 = 0;
@@ -478,6 +479,7 @@ async fn midi_send<'d, T: Instance + 'd>(class: &mut midi::Sender<'d, Driver<'d,
     }
 }
 
+/// Read the status of the capacitive touch sensor over I2C
 #[embassy_executor::task]
 async fn get_touch(i2c: I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, sleep1: Output<'static, AnyPin>, sleep2: Output<'static, AnyPin>, sleep3: Output<'static, AnyPin>, sleep4: Output<'static, AnyPin>, sleep5: Output<'static, AnyPin>) {
     let mut data = [0u8; 1];
