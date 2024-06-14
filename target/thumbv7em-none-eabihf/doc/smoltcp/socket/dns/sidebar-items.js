@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["GetQueryResultError","MulticastDns","StartQueryError"],"struct":["DnsQuery","QueryHandle","Socket"]};

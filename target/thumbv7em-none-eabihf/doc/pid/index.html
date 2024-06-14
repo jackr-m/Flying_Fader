@@ -1,0 +1,40 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A proportional-integral-derivative (PID) controller library."><title>pid - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="pid" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.0-nightly (1ba35e9bb 2024-05-25)" data-channel="nightly" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../pid/index.html">pid</a><span class="version">4.0.0</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">pid</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/pid/lib.rs.html#1-407">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A proportional-integral-derivative (PID) controller library.</p>
+<p>See <a href="struct.Pid.html" title="struct pid::Pid">Pid</a> for the adjustable controller itself, as well as <a href="struct.ControlOutput.html" title="struct pid::ControlOutput">ControlOutput</a> for the outputs and weights which you can use after setting up your controller. Follow the complete example below to setup your first controller!</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>pid::Pid;
+
+<span class="comment">// Create a new proportional-only PID controller with a setpoint of 15
+</span><span class="kw">let </span><span class="kw-2">mut </span>pid = Pid::new(<span class="number">15.0</span>, <span class="number">100.0</span>);
+pid.p(<span class="number">10.0</span>, <span class="number">100.0</span>);
+
+<span class="comment">// Input a measurement with an error of 5.0 from our setpoint
+</span><span class="kw">let </span>output = pid.next_control_output(<span class="number">10.0</span>);
+
+<span class="comment">// Show that the error is correct by multiplying by our kp
+</span><span class="macro">assert_eq!</span>(output.output, <span class="number">50.0</span>); <span class="comment">// &lt;--
+</span><span class="macro">assert_eq!</span>(output.p, <span class="number">50.0</span>);
+
+<span class="comment">// It won't change on repeat; the controller is proportional-only
+</span><span class="kw">let </span>output = pid.next_control_output(<span class="number">10.0</span>);
+<span class="macro">assert_eq!</span>(output.output, <span class="number">50.0</span>); <span class="comment">// &lt;--
+</span><span class="macro">assert_eq!</span>(output.p, <span class="number">50.0</span>);
+
+<span class="comment">// Add a new integral term to the controller and input again
+</span>pid.i(<span class="number">1.0</span>, <span class="number">100.0</span>);
+<span class="kw">let </span>output = pid.next_control_output(<span class="number">10.0</span>);
+
+<span class="comment">// Now that the integral makes the controller stateful, it will change
+</span><span class="macro">assert_eq!</span>(output.output, <span class="number">55.0</span>); <span class="comment">// &lt;--
+</span><span class="macro">assert_eq!</span>(output.p, <span class="number">50.0</span>);
+<span class="macro">assert_eq!</span>(output.i, <span class="number">5.0</span>);
+
+<span class="comment">// Add our final derivative term and match our setpoint target
+</span>pid.d(<span class="number">2.0</span>, <span class="number">100.0</span>);
+<span class="kw">let </span>output = pid.next_control_output(<span class="number">15.0</span>);
+
+<span class="comment">// The output will now say to go down due to the derivative
+</span><span class="macro">assert_eq!</span>(output.output, -<span class="number">5.0</span>); <span class="comment">// &lt;--
+</span><span class="macro">assert_eq!</span>(output.p, <span class="number">0.0</span>);
+<span class="macro">assert_eq!</span>(output.i, <span class="number">5.0</span>);
+<span class="macro">assert_eq!</span>(output.d, -<span class="number">10.0</span>);</code></pre></div>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.ControlOutput.html" title="struct pid::ControlOutput">ControlOutput</a></div><div class="desc docblock-short">Output of <a href="struct.Pid.html#method.next_control_output" title="method pid::Pid::next_control_output">controller iterations</a> with weights</div></li><li><div class="item-name"><a class="struct" href="struct.Pid.html" title="struct pid::Pid">Pid</a></div><div class="desc docblock-short">Adjustable proportional-integral-derivative (PID) controller.</div></li></ul></section></div></main></body></html>

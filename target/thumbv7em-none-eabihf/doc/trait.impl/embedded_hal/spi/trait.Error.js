@@ -1,0 +1,7 @@
+(function() {var implementors = {
+"embassy_embedded_hal":[["impl&lt;BUS, CS&gt; <a class=\"trait\" href=\"embedded_hal/spi/trait.Error.html\" title=\"trait embedded_hal::spi::Error\">Error</a> for <a class=\"enum\" href=\"embassy_embedded_hal/shared_bus/enum.SpiDeviceError.html\" title=\"enum embassy_embedded_hal::shared_bus::SpiDeviceError\">SpiDeviceError</a>&lt;BUS, CS&gt;<div class=\"where\">where\n    BUS: <a class=\"trait\" href=\"embedded_hal/spi/trait.Error.html\" title=\"trait embedded_hal::spi::Error\">Error</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a>,\n    CS: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a>,</div>"]],
+"embassy_stm32":[["impl <a class=\"trait\" href=\"embedded_hal/spi/trait.Error.html\" title=\"trait embedded_hal::spi::Error\">Error</a> for <a class=\"enum\" href=\"embassy_stm32/spi/enum.Error.html\" title=\"enum embassy_stm32::spi::Error\">Error</a>"]],
+"embedded_hal":[],
+"embedded_hal_async":[],
+"embedded_hal_nb":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

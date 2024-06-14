@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"bxcan":[["impl&lt;I&gt; <a class=\"trait\" href=\"embedded_hal/can/nb/trait.Can.html\" title=\"trait embedded_hal::can::nb::Can\">Can</a> for <a class=\"struct\" href=\"bxcan/struct.Can.html\" title=\"struct bxcan::Can\">Can</a>&lt;I&gt;<div class=\"where\">where\n    I: <a class=\"trait\" href=\"bxcan/trait.Instance.html\" title=\"trait bxcan::Instance\">Instance</a>,</div>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

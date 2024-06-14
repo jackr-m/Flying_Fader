@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["hz","khz","mhz"],"struct":["Hertz"]};

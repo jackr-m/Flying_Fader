@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"as_slice":[],
+"atomic_pool":[["impl&lt;P: <a class=\"trait\" href=\"atomic_pool/trait.Pool.html\" title=\"trait atomic_pool::Pool\">Pool</a>&gt; <a class=\"trait\" href=\"as_slice/trait.AsSlice.html\" title=\"trait as_slice::AsSlice\">AsSlice</a> for <a class=\"struct\" href=\"atomic_pool/struct.Box.html\" title=\"struct atomic_pool::Box\">Box</a>&lt;P&gt;<div class=\"where\">where\n    P::<a class=\"associatedtype\" href=\"atomic_pool/trait.Pool.html#associatedtype.Item\" title=\"type atomic_pool::Pool::Item\">Item</a>: <a class=\"trait\" href=\"as_slice/trait.AsSlice.html\" title=\"trait as_slice::AsSlice\">AsSlice</a>,</div>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

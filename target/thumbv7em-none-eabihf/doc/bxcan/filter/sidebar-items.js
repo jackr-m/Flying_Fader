@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BankConfig"],"struct":["ListEntry16","ListEntry32","Mask16","Mask32","MasterFilters","SlaveFilters"]};

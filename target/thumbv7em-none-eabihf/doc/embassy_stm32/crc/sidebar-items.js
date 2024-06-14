@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ConfigError","InputReverseConfig","PolySize"],"struct":["Config","Crc"]};

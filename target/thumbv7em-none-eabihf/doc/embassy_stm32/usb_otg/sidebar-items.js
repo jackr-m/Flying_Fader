@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["In","Out","PhyType"],"struct":["Bus","Config","ControlPipe","Driver","Endpoint","InterruptHandler","State"],"trait":["DmPin","DpPin","Instance","UlpiClkPin","UlpiD0Pin","UlpiD1Pin","UlpiD2Pin","UlpiD3Pin","UlpiD4Pin","UlpiD5Pin","UlpiD6Pin","UlpiD7Pin","UlpiDirPin","UlpiNxtPin","UlpiStpPin"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Error","HSyncDataInvalidLevel","PixelClockPolarity","VSyncDataInvalidLevel"],"struct":["Config","Dcmi","InterruptHandler"],"trait":["D0Pin","D10Pin","D11Pin","D12Pin","D13Pin","D1Pin","D2Pin","D3Pin","D4Pin","D5Pin","D6Pin","D7Pin","D8Pin","D9Pin","FrameDma","HSyncPin","Instance","PixClkPin","VSyncPin"]};

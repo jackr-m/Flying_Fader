@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Is42s32800g"]};

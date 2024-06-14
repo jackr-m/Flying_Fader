@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Error"],"struct":["Config","ErrorInterruptHandler","EventInterruptHandler","I2c"],"trait":["Instance","RxDma","SclPin","SdaPin","TxDma"]};

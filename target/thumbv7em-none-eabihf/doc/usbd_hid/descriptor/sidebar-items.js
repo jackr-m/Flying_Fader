@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["gen_hid_descriptor"],"enum":["KeyboardUsage","MediaKey","SystemControlKey"],"mod":["generator_prelude"],"struct":["KeyboardReport","MediaKeyboardReport","MouseReport","SystemControlReport"],"trait":["AsInputReport","SerializedDescriptor"]};

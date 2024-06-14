@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Burst","FifoThreshold","FlowControl"],"mod":["bdma","word"],"struct":["DMAMUX1","DMAMUX2","DoubleBuffered","NoDma","ReadableRingBuffer","Transfer","TransferOptions","WritableRingBuffer"],"trait":["Channel","MuxChannel"],"type":["Request"]};

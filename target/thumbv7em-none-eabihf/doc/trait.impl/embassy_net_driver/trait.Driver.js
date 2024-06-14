@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"embassy_net_driver":[],
+"embassy_net_driver_channel":[["impl&lt;'d, const MTU: <a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/core/primitive.usize.html\">usize</a>&gt; <a class=\"trait\" href=\"embassy_net_driver/trait.Driver.html\" title=\"trait embassy_net_driver::Driver\">Driver</a> for <a class=\"struct\" href=\"embassy_net_driver_channel/struct.Device.html\" title=\"struct embassy_net_driver_channel::Device\">Device</a>&lt;'d, MTU&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

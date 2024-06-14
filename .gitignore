@@ -1,2 +1,2 @@
-/target
-!/target/thumbv7em-none-eabihf/doc
+target/*
+!target/thumbv7em-none-eabihf/doc/

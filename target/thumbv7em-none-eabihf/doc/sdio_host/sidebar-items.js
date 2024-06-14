@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BlockSize","BusWidth","CardCapacity","CurrentConsumption","CurrentState","SDSpecVersion"],"mod":["cmd"],"struct":["CIC","CID","CSD","CardStatus","Cmd","OCR","RCA","SCR","SDStatus"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MODE_0","MODE_1","MODE_2","MODE_3"],"enum":["BitOrder","Error","Phase","Polarity"],"struct":["Config","Mode","Spi"],"trait":["CkPin","CsPin","Instance","MckPin","MisoPin","MosiPin","RxDma","SckPin","TxDma","Word","WsPin"]};

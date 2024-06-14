@@ -1,0 +1,1 @@
+searchState.loadedDescShard("defmt_rtt", 0, "<code>defmt</code> global logger over RTT.")

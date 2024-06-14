@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["ReadableRingBuffer","Transfer","TransferOptions","WritableRingBuffer"],"trait":["Channel"],"type":["Request"]};

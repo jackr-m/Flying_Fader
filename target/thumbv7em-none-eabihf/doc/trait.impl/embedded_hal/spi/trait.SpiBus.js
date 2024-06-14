@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"embassy_stm32":[["impl&lt;'d, T: <a class=\"trait\" href=\"embassy_stm32/spi/trait.Instance.html\" title=\"trait embassy_stm32::spi::Instance\">Instance</a>, W: <a class=\"trait\" href=\"embassy_stm32/spi/trait.Word.html\" title=\"trait embassy_stm32::spi::Word\">Word</a>, Tx, Rx&gt; <a class=\"trait\" href=\"embedded_hal/spi/trait.SpiBus.html\" title=\"trait embedded_hal::spi::SpiBus\">SpiBus</a>&lt;W&gt; for <a class=\"struct\" href=\"embassy_stm32/spi/struct.Spi.html\" title=\"struct embassy_stm32::spi::Spi\">Spi</a>&lt;'d, T, Tx, Rx&gt;"]],
+"embedded_hal":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
