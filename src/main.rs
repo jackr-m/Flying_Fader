@@ -66,6 +66,30 @@ static SLIDER_5_TOUCH: AtomicBool = AtomicBool::new(false);
 async fn main(spawner: Spawner) {
     let config = Config::default();
 
+    /*let mut config = Config::default();
+    {
+        use embassy_stm32::rcc::*;
+        config.rcc.hsi = Some(HSIPrescaler::DIV1);
+        config.rcc.csi = true;
+        config.rcc.hsi48 = Some(Hsi48Config { sync_from_usb: true }); // needed for USB
+        config.rcc.pll1 = Some(Pll {
+            source: PllSource::HSI,
+            prediv: PllPreDiv::DIV4,
+            mul: PllMul::MUL50,
+            divp: Some(PllDiv::DIV2),
+            divq: None,
+            divr: None,
+        });
+        config.rcc.sys = Sysclk::PLL1_P; // 400 Mhz
+        config.rcc.ahb_pre = AHBPrescaler::DIV2; // 200 Mhz
+        config.rcc.apb1_pre = APBPrescaler::DIV2; // 100 Mhz
+        config.rcc.apb2_pre = APBPrescaler::DIV2; // 100 Mhz
+        config.rcc.apb3_pre = APBPrescaler::DIV2; // 100 Mhz
+        config.rcc.apb4_pre = APBPrescaler::DIV2; // 100 Mhz
+        config.rcc.voltage_scale = VoltageScale::Scale1;
+        config.rcc.mux.usbsel = mux::Usbsel::HSI48;
+    }*/
+    
     let mut p = embassy_stm32::init(config);
 
     info!("Starting program...");
@@ -157,6 +181,15 @@ async fn main(spawner: Spawner) {
         }
     }
 
+    // LCD initialization
+    let lcd_backlight = p.PC12;
+    let lcd_backlight_channel = PwmPin::new_ch1(lcd_backlight, OutputType::PushPull);
+    let mut lcd_backlight_pwm = SimplePwm::new(p.TIM15, Some(lcd_backlight_channel), None, None, None, khz(50), Default::default());
+    
+    let backlight_duty = 50_u16;
+    let lcd_backlight_pwm_max = lcd_backlight_pwm.get_max_duty();
+    lcd_backlight_pwm.set_duty(Channel::Ch1, backlight_duty*lcd_backlight_pwm_max/100);
+    
     // Motor initialization
     let mot1_sleep = p.PD4;
     let mot1_in1 = p.PD12;
@@ -264,10 +297,10 @@ async fn main(spawner: Spawner) {
     let driver = Driver::new_fs(p.USB_OTG_HS, Irqs, p.PA12, p.PA11, &mut ep_out_buffer, config);
     // Create embassy-usb Config
     let mut config = embassy_usb::Config::new(0xc0de, 0xcafe);
-    config.manufacturer = Some("Embassy");
-    config.product = Some("USB-MIDI example");
-    config.serial_number = Some("12345678");
-    config.max_power = 100;
+    config.manufacturer = Some("CollapseOfSound");
+    config.product = Some("Flying Fader");
+    config.serial_number = Some("00000001");
+    config.max_power = 200;
     config.max_packet_size_0 = 64;
     // Required for windows compatibility.
     // https://developer.nordicsemi.com/nRF_Connect_SDK/doc/1.9.1/kconfig/CONFIG_CDC_ACM_IAD.html#help
@@ -456,8 +489,8 @@ async fn get_touch(i2c: I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, sleep1: Output<'
     let mut sleep5_obj = sleep5;
     loop {
         match i2c_task.write_read(ADDRESS, &[KEY_STATUS], &mut data).await {
-            Ok(()) => info!("Key Status: {:#010b}", data[0]),
-            // Ok(()) => (),
+            // Ok(()) => info!("Key Status: {:#010b}", data[0]),
+            Ok(()) => (),
             Err(Error::Timeout) => error!("Operation timed out"),
             Err(e) => error!("I2c Error: {:?}", e),
         }
