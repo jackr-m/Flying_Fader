@@ -408,8 +408,10 @@ async fn main(spawner: Spawner) {
     join4(usb_fut, midi_send_fut, midi_recv_fut, slider_fut).await;
 }
 
+/// Empty struct for USB disconnection handling
 struct Disconnected {}
 
+/// Convert EndpointError to Disconnected
 impl From<EndpointError> for Disconnected {
     fn from(val: EndpointError) -> Self {
         match val {
