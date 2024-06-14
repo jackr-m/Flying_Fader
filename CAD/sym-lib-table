@@ -1,0 +1,5 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "Fader_Library")(type "KiCad")(uri "${KIPRJMOD}/Fader_Library.kicad_sym")(options "")(descr ""))
+  (lib (name "PSM01-082A-103B2")(type "KiCad")(uri "${KIPRJMOD}/LIB_PSM01-082A-103B2/PSM01-082A-103B2/KiCad/PSM01-082A-103B2.kicad_sym")(options "")(descr ""))
+)

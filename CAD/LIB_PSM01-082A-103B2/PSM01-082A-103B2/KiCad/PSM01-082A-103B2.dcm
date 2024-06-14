@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP PSM01-082A-103B2
+D Bourns Potentiometer PSM Series with a 6 x 1.2 mm Dia. Shaft 10k +/-20% 0.5W, Linear, PCB Mount
+K
+F https://4donline.ihs.com/images/VipMasterIC/IC/BOUR/BOUR-S-A0009830518/BOUR-S-A0009830518-1.pdf?hkey=EF798316E3902B6ED9A73243A3159BB0
+$ENDCMP
+#
+#End Doc Library

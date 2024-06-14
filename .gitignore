@@ -1,2 +1,3 @@
 target/*
 !target/thumbv7em-none-eabihf/doc/
+/target/thumbv7em-none-eabihf/doc/src/
