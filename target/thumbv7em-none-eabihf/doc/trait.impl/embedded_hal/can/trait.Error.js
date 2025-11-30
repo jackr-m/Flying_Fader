@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"bxcan":[["impl <a class=\"trait\" href=\"embedded_hal/can/trait.Error.html\" title=\"trait embedded_hal::can::Error\">Error</a> for <a class=\"struct\" href=\"bxcan/struct.OverrunError.html\" title=\"struct bxcan::OverrunError\">OverrunError</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

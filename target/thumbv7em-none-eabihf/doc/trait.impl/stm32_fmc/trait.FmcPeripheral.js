@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"embassy_stm32":[["impl&lt;'d, T&gt; <a class=\"trait\" href=\"stm32_fmc/trait.FmcPeripheral.html\" title=\"trait stm32_fmc::FmcPeripheral\">FmcPeripheral</a> for <a class=\"struct\" href=\"embassy_stm32/fmc/struct.Fmc.html\" title=\"struct embassy_stm32::fmc::Fmc\">Fmc</a>&lt;'d, T&gt;<div class=\"where\">where\n    T: <a class=\"trait\" href=\"embassy_stm32/fmc/trait.Instance.html\" title=\"trait embassy_stm32::fmc::Instance\">Instance</a>,</div>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

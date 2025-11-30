@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Checksum","HardwareAddress","LinkState"],"struct":["Capabilities","ChecksumCapabilities"],"trait":["Driver","RxToken","TxToken"]};

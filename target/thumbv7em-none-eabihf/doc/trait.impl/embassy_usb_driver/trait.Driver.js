@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"embassy_stm32":[["impl&lt;'d, T: <a class=\"trait\" href=\"embassy_stm32/usb_otg/trait.Instance.html\" title=\"trait embassy_stm32::usb_otg::Instance\">Instance</a>&gt; <a class=\"trait\" href=\"embassy_usb_driver/trait.Driver.html\" title=\"trait embassy_usb_driver::Driver\">Driver</a>&lt;'d&gt; for <a class=\"struct\" href=\"embassy_stm32/usb_otg/struct.Driver.html\" title=\"struct embassy_stm32::usb_otg::Driver\">Driver</a>&lt;'d, T&gt;"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

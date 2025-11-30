@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["FairSemaphore","GreedySemaphore","SemaphoreReleaser","WaitQueueFull"],"trait":["Semaphore"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["DateTimeError","DayOfWeek","RtcCalibrationCyclePeriod","RtcError"],"struct":["DateTime","Rtc","RtcConfig","RtcTimeProvider"]};

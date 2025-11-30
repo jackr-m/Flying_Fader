@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ConfigError","DataBits","Error","Parity","StopBits"],"struct":["BufferedInterruptHandler","BufferedUart","BufferedUartRx","BufferedUartTx","Config","InterruptHandler","RingBufferedUartRx","State","Uart","UartRx","UartTx"],"trait":["BasicInstance","CkPin","CtsPin","DePin","FullInstance","RtsPin","RxDma","RxPin","TxDma","TxPin"]};

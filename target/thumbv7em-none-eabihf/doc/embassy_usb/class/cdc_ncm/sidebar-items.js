@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["USB_CLASS_CDC"],"mod":["embassy_net"],"struct":["CdcNcmClass","Receiver","Sender","State"]};

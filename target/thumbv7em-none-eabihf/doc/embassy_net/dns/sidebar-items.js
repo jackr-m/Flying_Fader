@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["DnsQueryType","Error","IpAddress"],"struct":["DnsQuery","DnsSocket","Socket"]};

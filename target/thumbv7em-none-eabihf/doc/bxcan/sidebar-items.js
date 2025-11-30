@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Fifo","Id","Interrupt","Mailbox"],"mod":["filter"],"struct":["Can","CanBuilder","CanConfig","Data","ExtendedId","Frame","FramePriority","Interrupts","OverrunError","RegisterBlock","Rx0","Rx1","StandardId","TransmitStatus","Tx"],"trait":["FilterOwner","Instance","MasterInstance"]};

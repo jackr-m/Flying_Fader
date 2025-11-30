@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ReadError","ReportId"],"struct":["Config","HidReader","HidReaderWriter","HidWriter","State"],"trait":["RequestHandler"]};

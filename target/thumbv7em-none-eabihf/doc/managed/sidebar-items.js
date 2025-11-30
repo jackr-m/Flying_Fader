@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Managed","ManagedMap","ManagedMapIter","ManagedMapIterMut","ManagedSlice"],"struct":["SlotIndex","SlotKey","SlotMap"]};

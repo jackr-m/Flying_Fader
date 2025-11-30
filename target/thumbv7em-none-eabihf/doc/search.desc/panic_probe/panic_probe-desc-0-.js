@@ -1,1 +1,0 @@
-searchState.loadedDescShard("panic_probe", 0, "Panic handler for <code>probe-run</code>.\nTrigger a <code>HardFault</code> via <code>udf</code> instruction.")

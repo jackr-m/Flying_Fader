@@ -1,1 +1,0 @@
-searchState.loadedDescShard("ssmarshal", 0, "Deserialize a value from a buffer. Returns the number of …\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nSerialize a value into a buffer. Returns the number of …")

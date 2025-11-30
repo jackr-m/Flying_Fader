@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["BANK1_REGION","BANK2_REGION","FLASH_BASE","FLASH_REGIONS","FLASH_SIZE","MAX_ERASE_SIZE","OTP_REGION","READ_SIZE","WRITE_SIZE"],"enum":["Async","Blocking","Error","FlashBank"],"fn":["get_flash_regions","is_default_layout"],"struct":["Bank1Region","Bank2Region","Flash","FlashLayout","FlashRegion","FlashSector","OTPRegion"]};

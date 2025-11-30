@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Cfgr","Cr","Ier","Isr","Rxdr","Txdr"]};

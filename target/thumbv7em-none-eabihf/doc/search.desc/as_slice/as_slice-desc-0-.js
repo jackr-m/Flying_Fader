@@ -1,1 +1,0 @@
-searchState.loadedDescShard("as_slice", 0, "<code>AsSlice</code> and <code>AsMutSlice</code> traits\nSomething that can be seen as an mutable slice\nSomething that can be seen as an immutable slice\nThe element type of the slice view\nReturns the mutable slice view of <code>Self</code>\nReturns the immutable slice view of <code>Self</code>")

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["FlashSelect","FunctionalMode","LatencyMode","MatchMode","MemType","PhaseMode","SampleShift","SizeInBits"],"struct":["Threshold"]};

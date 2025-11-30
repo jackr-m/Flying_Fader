@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Blanking","Hyst","Inmsel","Inpsel","Pwrmode"]};

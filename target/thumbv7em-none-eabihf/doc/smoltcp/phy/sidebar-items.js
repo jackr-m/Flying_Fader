@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Checksum","Medium","PcapLinkType","PcapMode"],"struct":["ChecksumCapabilities","DeviceCapabilities","FaultInjector","FuzzInjector","PacketMeta","PcapWriter","Tracer"],"trait":["Device","Fuzzer","PcapSink","RxToken","TxToken"]};

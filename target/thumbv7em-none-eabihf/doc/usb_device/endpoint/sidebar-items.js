@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["EndpointType","IsochronousSynchronizationType","IsochronousUsageType"],"struct":["Endpoint","EndpointAddress","In","Out"],"trait":["EndpointDirection"],"type":["EndpointIn","EndpointOut"]};

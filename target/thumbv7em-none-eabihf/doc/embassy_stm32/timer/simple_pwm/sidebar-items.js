@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Ch1","Ch2","Ch3","Ch4"],"struct":["PwmPin","SimplePwm"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["USB_AUDIO_CLASS"],"struct":["MidiClass","Receiver","Sender"]};

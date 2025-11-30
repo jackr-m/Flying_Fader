@@ -1,4 +1,0 @@
-(function() {var implementors = {
-"embassy_net":[["impl&lt;'a, D&gt; <a class=\"trait\" href=\"embedded_nal_async/dns/trait.Dns.html\" title=\"trait embedded_nal_async::dns::Dns\">Dns</a> for <a class=\"struct\" href=\"embassy_net/dns/struct.DnsSocket.html\" title=\"struct embassy_net::dns::DnsSocket\">DnsSocket</a>&lt;'a, D&gt;<div class=\"where\">where\n    D: <a class=\"trait\" href=\"embassy_net_driver/trait.Driver.html\" title=\"trait embassy_net_driver::Driver\">Driver</a> + 'static,</div>"]],
-"embedded_nal_async":[]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

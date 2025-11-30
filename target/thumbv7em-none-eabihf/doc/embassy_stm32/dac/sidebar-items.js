@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["DualValue","Mode","TriggerSel","Value","ValueArray"],"struct":["Dac","DacChannel"],"trait":["DacDma1","DacDma2","DacPin","Instance"],"type":["DacCh1","DacCh2"]};

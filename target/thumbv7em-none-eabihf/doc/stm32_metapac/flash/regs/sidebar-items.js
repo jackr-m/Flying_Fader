@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Acr","BootCurr","BootPrgr","Ccr","Cr","Crccr","Crcdatar","Crceaddr","Crcsaddr","Far","Optccr","Optcr","OptsrCur","OptsrPrg","PrarCur","PrarPrg","ScarCur","ScarPrg","Sr","WpsnCurr","WpsnPrgr"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["main","task"],"enum":["SpawnError"],"mod":["raw"],"struct":["Executor","InterruptExecutor","SendSpawner","SpawnToken","Spawner"]};

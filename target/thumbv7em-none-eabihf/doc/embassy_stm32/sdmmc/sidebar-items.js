@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Error","Signalling"],"struct":["Card","Config","DataBlock","InterruptHandler","Sdmmc"],"trait":["CkPin","CmdPin","D0Pin","D1Pin","D2Pin","D3Pin","D4Pin","D5Pin","D6Pin","D7Pin","Instance","SdmmcDma"]};

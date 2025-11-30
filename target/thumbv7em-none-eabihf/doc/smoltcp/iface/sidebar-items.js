@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Config","Context","Interface","Route","RouteTableFull","Routes","SocketHandle","SocketSet","SocketStorage"]};

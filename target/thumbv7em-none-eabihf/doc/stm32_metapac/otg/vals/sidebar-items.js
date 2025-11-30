@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Dpid","Dspd","Eptyp","Pfivl","Pktstsd","Pktstsh"]};

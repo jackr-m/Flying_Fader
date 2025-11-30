@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Ch1","Ch2","Direction"],"struct":["Qei","QeiPin"]};

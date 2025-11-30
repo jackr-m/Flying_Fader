@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ConfigV4","ConfigV6","HardwareAddress","IpAddress","IpCidr"],"mod":["dns","tcp"],"struct":["Config","DhcpConfig","EthernetAddress","IpEndpoint","IpListenEndpoint","Ipv4Address","Ipv4Cidr","Ipv6Address","Ipv6Cidr","Stack","StackResources","StaticConfigV4","StaticConfigV6"]};

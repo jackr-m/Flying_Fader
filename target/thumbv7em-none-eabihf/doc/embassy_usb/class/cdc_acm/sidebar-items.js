@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["USB_CLASS_CDC"],"enum":["ParityType","StopBits"],"struct":["CdcAcmClass","ControlChanged","LineCoding","Receiver","Sender","State"]};

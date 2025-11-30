@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["gen_hid_descriptor"],"trait":["Serialize","SerializeTuple","Serializer"]};

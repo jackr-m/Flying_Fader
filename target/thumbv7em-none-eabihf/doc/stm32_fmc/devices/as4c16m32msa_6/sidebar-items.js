@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["As4c16m32msa"]};

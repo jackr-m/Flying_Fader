@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["cdc_acm","cdc_ncm","hid","midi","web_usb"]};
