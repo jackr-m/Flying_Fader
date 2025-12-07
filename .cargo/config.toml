@@ -5,8 +5,8 @@ rustflags = [
     "-C", "link-arg=-Tdefmt.x",
     "--cfg=force_disable_atomic64"
 ] # these flags are required to make the linker script work for the Blackpill (not required for NUCLEO-L476RG)
-runner = "probe-rs run --connect-under-reset --chip STM32H7A3VITx"
-#runner = "probe-rs run --chip STM32H7A3VITx"
+#runner = "probe-rs run --connect-under-reset --chip STM32H7A3VITx"
+runner = "probe-rs run --chip STM32H7A3VITx"
 
 [build]
 target = "thumbv7em-none-eabihf"
