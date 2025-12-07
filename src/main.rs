@@ -3,27 +3,25 @@
 
 use defmt::{info, error, panic};
 use embassy_executor::Spawner;
-use embassy_stm32::{bind_interrupts, mode, usb, Config}; // was usb_otg
+use embassy_stm32::{bind_interrupts, mode, usb, Config};
 use embassy_stm32::adc::{Adc, SampleTime, Resolution};
-use embassy_stm32::gpio::{Level, Output, OutputType, Speed}; // had AnyPin
-use embassy_stm32::peripherals::{I2C1, TIM3, TIM4, USB_OTG_HS}; // had DMA1_CH4, DMA1_CH5
+use embassy_stm32::gpio::{Level, Output, OutputType, Speed};
+use embassy_stm32::peripherals::{I2C1, TIM3, TIM4, USB_OTG_HS};
 use embassy_stm32::time::{Hertz, khz};
-use embassy_stm32::timer::{GeneralInstance4Channel, low_level::OutputPolarity}; // had CaptureCompare16bitInstance
+use embassy_stm32::timer::{GeneralInstance4Channel, low_level::OutputPolarity};
 use embassy_stm32::timer::simple_pwm::{PwmPin, SimplePwm};
-use embassy_time::{Timer}; // used to have Delay
+use embassy_time::{Timer};
 use embassy_stm32::i2c::{self, Error, I2c};
 
 use embassy_futures::join::*;
-use embassy_stm32::usb::{Driver, Instance, InterruptHandler}; // was usb_otg
+use embassy_stm32::usb::{Driver, Instance, InterruptHandler};
 use embassy_usb::driver::EndpointError;
 use embassy_usb::Builder;
 use embassy_usb::class::midi::MidiClass;
 
 use pid::Pid;
 use core::sync::atomic::{AtomicBool, AtomicU16, Ordering};
-// use cortex_m::prelude::_embedded_hal_Pwm;
 use embassy_usb::class::midi;
-
 use {defmt_rtt as _, panic_probe as _};
 
 const ADDRESS: u8 = 0x1B;
@@ -46,24 +44,9 @@ bind_interrupts!(struct Irqs {
 });
 
 pub fn clamp<T: PartialOrd>(input: T, min: T, max: T) -> T {
-    if min < max {
-        if input < min {
-            min
-        } else if input > max {
-            max
-        } else {
-            input
-        }
-    }
+    if min < max { if input < min { min } else if input > max { max } else { input } }
     else { // case where you accidentally flipped min and max
-        if input < max {
-            min
-        } else if input > min {
-            max
-        } else {
-            input
-        }
-    }
+        if input < max { min } else if input > min { max } else { input } }
 }
 
 
@@ -86,42 +69,52 @@ static SLIDER_5_TOUCH: AtomicBool = AtomicBool::new(false);
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-    let config = Config::default();
-
-    /*let mut config = Config::default();
+    let mut config = Config::default();
     {
         use embassy_stm32::rcc::*;
-        config.rcc.hsi = Some(HSIPrescaler::DIV1);
-        config.rcc.csi = true;
+        config.rcc.hsi = Some(HSIPrescaler::DIV1); // 64 MHz
+        config.rcc.csi = false;
         config.rcc.hsi48 = Some(Hsi48Config { sync_from_usb: true }); // needed for USB
         config.rcc.pll1 = Some(Pll {
             source: PllSource::HSI,
             prediv: PllPreDiv::DIV4,
-            mul: PllMul::MUL50,
-            divp: Some(PllDiv::DIV2),
+            mul: PllMul::MUL24,
+            divp: Some(PllDiv::DIV2), // 192 MHz
+            divq: Some(PllDiv::DIV2), // 192 MHz
+            divr: None,
+        });
+        config.rcc.pll2 = Some(Pll {
+            source: PllSource::HSI,
+            prediv: PllPreDiv::DIV4,
+            mul: PllMul::MUL8,
+            divp: Some(PllDiv::DIV3), // 42.66667 MHz
             divq: None,
             divr: None,
         });
-        config.rcc.sys = Sysclk::PLL1_P; // 400 Mhz
-        config.rcc.ahb_pre = AHBPrescaler::DIV2; // 200 Mhz
-        config.rcc.apb1_pre = APBPrescaler::DIV2; // 100 Mhz
-        config.rcc.apb2_pre = APBPrescaler::DIV2; // 100 Mhz
-        config.rcc.apb3_pre = APBPrescaler::DIV2; // 100 Mhz
-        config.rcc.apb4_pre = APBPrescaler::DIV2; // 100 Mhz
-        config.rcc.voltage_scale = VoltageScale::Scale1;
+        config.rcc.pll3 = Some(Pll {
+            source: PllSource::HSI,
+            prediv: PllPreDiv::DIV4,
+            mul: PllMul::MUL8,
+            divp: Some(PllDiv::DIV2), // 64 MHz
+            divq: None,
+            divr: Some(PllDiv::DIV3), // 42.66667 MHZ
+        });
+        config.rcc.sys = Sysclk::PLL1_P; // 192 MHz
+        config.rcc.ahb_pre = AHBPrescaler::DIV1; // 192 MHz
+        config.rcc.apb1_pre = APBPrescaler::DIV2; // 96 MHz
+        config.rcc.apb2_pre = APBPrescaler::DIV2; // 96 MHz
+        config.rcc.apb3_pre = APBPrescaler::DIV2; // 96 MHz
+        config.rcc.apb4_pre = APBPrescaler::DIV2; // 96 MHz
+        config.rcc.voltage_scale = VoltageScale::Scale0;
         config.rcc.mux.usbsel = mux::Usbsel::HSI48;
-    }*/
+    }
     
     let mut p = embassy_stm32::init(config);
 
     info!("Starting program...");
 
     // ADC Initialization
-    // let mut delay = Delay;
-    // let mut adc1 = Adc::new(p.ADC1, &mut delay);
     let mut adc2 = Adc::new(p.ADC2);
-    // adc1.set_sample_time(SampleTime::Cycles16_5);
-    // adc1.set_resolution(Resolution::EightBit);
     adc2.set_sample_time(SampleTime::CYCLES16_5);
     adc2.set_resolution(Resolution::BITS8);
     
@@ -135,8 +128,6 @@ async fn main(spawner: Spawner) {
         Irqs,
         p.DMA1_CH4,
         p.DMA1_CH5,
-        // Hertz(100_000),
-        //Default::default(),
         i2c_config
     );
 
@@ -208,14 +199,11 @@ async fn main(spawner: Spawner) {
 
     // LCD initialization
     let lcd_backlight = p.PC12;
-    let lcd_backlight_channel = PwmPin::new(lcd_backlight, OutputType::PushPull); // was new_ch1
+    let lcd_backlight_channel = PwmPin::new(lcd_backlight, OutputType::PushPull);
     let mut lcd_backlight_pwm = SimplePwm::new(p.TIM15, Some(lcd_backlight_channel), None, None, None, khz(50), Default::default());
 
-    let backlight_duty = 50_u16;
-    // let lcd_backlight_pwm_max = lcd_backlight_pwm.get_max_duty();
-    let lcd_backlight_pwm_max = lcd_backlight_pwm.max_duty_cycle();
-    // lcd_backlight_pwm.set_duty(Channel::Ch1, backlight_duty*lcd_backlight_pwm_max/100);
-    lcd_backlight_pwm.ch1().set_duty_cycle(backlight_duty*lcd_backlight_pwm_max/100);
+    let backlight_duty = 50_u8;
+    lcd_backlight_pwm.ch1().set_duty_cycle_percent(backlight_duty);
     
     // Motor initialization
     let mot1_sleep = p.PD4;
@@ -245,34 +233,23 @@ async fn main(spawner: Spawner) {
     sleep4.set_high();
     sleep5.set_high();
 
-    let mot1_ch1 = PwmPin::new(mot1_in1, OutputType::PushPull); // was new_ch1
-    let mot1_ch2 = PwmPin::new(mot1_in2, OutputType::PushPull); // was new_ch2
+    let mot1_ch1 = PwmPin::new(mot1_in1, OutputType::PushPull);
+    let mot1_ch2 = PwmPin::new(mot1_in2, OutputType::PushPull);
     let mut mot1_pwm = SimplePwm::new(p.TIM4, Some(mot1_ch1), Some(mot1_ch2), None, None, khz(20), Default::default());
-    let mot2_ch1 = PwmPin::new(mot2_in1, OutputType::PushPull); // was new_ch3
-    let mot2_ch2 = PwmPin::new(mot2_in2, OutputType::PushPull); // was new_ch4
+    let mot2_ch1 = PwmPin::new(mot2_in1, OutputType::PushPull);
+    let mot2_ch2 = PwmPin::new(mot2_in2, OutputType::PushPull);
     let mut mot2_pwm = SimplePwm::new(unsafe {TIM4::steal()}, None, None, Some(mot2_ch1), Some(mot2_ch2), khz(20), Default::default());
-    let mot3_ch1 = PwmPin::new(mot3_in1, OutputType::PushPull); // was new_ch1
-    let mot3_ch2 = PwmPin::new(mot3_in2, OutputType::PushPull); // was new_ch2
+    let mot3_ch1 = PwmPin::new(mot3_in1, OutputType::PushPull);
+    let mot3_ch2 = PwmPin::new(mot3_in2, OutputType::PushPull);
     let mut mot3_pwm = SimplePwm::new(p.TIM1, Some(mot3_ch1), Some(mot3_ch2), None, None, khz(20), Default::default());
-    let mot4_ch1 = PwmPin::new(mot4_in1, OutputType::PushPull); // was new_ch1
-    let mot4_ch2 = PwmPin::new(mot4_in2, OutputType::PushPull); // was new_ch2
+    let mot4_ch1 = PwmPin::new(mot4_in1, OutputType::PushPull);
+    let mot4_ch2 = PwmPin::new(mot4_in2, OutputType::PushPull);
     let mut mot4_pwm = SimplePwm::new(p.TIM3, Some(mot4_ch1), Some(mot4_ch2), None, None, khz(20), Default::default());
-    let mot5_ch1 = PwmPin::new(mot5_in1, OutputType::PushPull); // was new_ch3
-    let mot5_ch2 = PwmPin::new(mot5_in2, OutputType::PushPull); // was new_ch4
+    let mot5_ch1 = PwmPin::new(mot5_in1, OutputType::PushPull);
+    let mot5_ch2 = PwmPin::new(mot5_in2, OutputType::PushPull);
     let mut mot5_pwm = SimplePwm::new(unsafe {TIM3::steal()}, None, None, Some(mot5_ch1), Some(mot5_ch2), khz(20), Default::default());
-    
-    // mot1_pwm.set_polarity(Channel::Ch1, OutputPolarity::ActiveLow); // inverted PWM
-    // mot1_pwm.set_polarity(Channel::Ch2, OutputPolarity::ActiveLow);
-    // mot2_pwm.set_polarity(Channel::Ch3, OutputPolarity::ActiveLow);
-    // mot2_pwm.set_polarity(Channel::Ch4, OutputPolarity::ActiveLow);
-    // mot3_pwm.set_polarity(Channel::Ch1, OutputPolarity::ActiveLow);
-    // mot3_pwm.set_polarity(Channel::Ch2, OutputPolarity::ActiveLow);
-    // mot4_pwm.set_polarity(Channel::Ch1, OutputPolarity::ActiveLow);
-    // mot4_pwm.set_polarity(Channel::Ch2, OutputPolarity::ActiveLow);
-    // mot5_pwm.set_polarity(Channel::Ch3, OutputPolarity::ActiveLow);
-    // mot5_pwm.set_polarity(Channel::Ch4, OutputPolarity::ActiveLow);
 
-    mot1_pwm.ch1().set_polarity(OutputPolarity::ActiveLow);
+    mot1_pwm.ch1().set_polarity(OutputPolarity::ActiveLow); // inverted PWM
     mot1_pwm.ch2().set_polarity(OutputPolarity::ActiveLow);
     mot2_pwm.ch3().set_polarity(OutputPolarity::ActiveLow);
     mot2_pwm.ch4().set_polarity(OutputPolarity::ActiveLow);
@@ -288,8 +265,6 @@ async fn main(spawner: Spawner) {
     enable_motor(&mut mot3_pwm, 'a');
     enable_motor(&mut mot4_pwm, 'a');
     enable_motor(&mut mot5_pwm, 'b');
-
-    // let duty = 80_i16;
 
     let desired_position1 = SLIDER_1_DES.load(Ordering::Relaxed);
     let desired_position2 = SLIDER_2_DES.load(Ordering::Relaxed);
@@ -325,12 +300,12 @@ async fn main(spawner: Spawner) {
     pid5.i(pid_i, pid_i_lim);
     pid5.d(pid_d, pid_d_lim);
     
-    spawner.spawn(get_touch(i2c, sleep1, sleep2, sleep3, sleep4, sleep5)).unwrap(); // was sleepX.degrade()
+    spawner.spawn(get_touch(i2c, sleep1, sleep2, sleep3, sleep4, sleep5)).unwrap();
 
 
     // USB Initialization
     let mut ep_out_buffer = [0u8; 256];
-    let mut config = usb::Config::default(); // was usb_otg
+    let mut config = usb::Config::default();
     config.vbus_detection = false; // Necessary since STM32 is powered solely by USB
     let driver = Driver::new_fs(p.USB_OTG_HS, Irqs, p.PA12, p.PA11, &mut ep_out_buffer, config);
     // Create embassy-usb Config
@@ -386,11 +361,11 @@ async fn main(spawner: Spawner) {
 
     let slider_fut = async {
         loop {
-            let mot1_measured = adc2.blocking_read(&mut p.PC0) >> 1; // was adc2.read
+            let mot1_measured = adc2.blocking_read(&mut p.PC0) >> 1;
             let mot2_measured = adc2.blocking_read(&mut p.PC1) >> 1;// was adc2.read
-            let mot3_measured = adc2.blocking_read(&mut p.PC2_C) >> 1; // was adc2.read
-            let mot4_measured = adc2.blocking_read(&mut p.PC3_C) >> 1; // was adc2.read
-            let mot5_measured = adc2.blocking_read(&mut p.PC4) >> 1; // was adc2.read
+            let mot3_measured = adc2.blocking_read(&mut p.PC2_C) >> 1;
+            let mot4_measured = adc2.blocking_read(&mut p.PC3_C) >> 1;
+            let mot5_measured = adc2.blocking_read(&mut p.PC4) >> 1;
             // info!("measured: {}, {}, {}, {}, {}", mot1_measured, mot2_measured, mot3_measured, mot4_measured, mot5_measured);
             
             SLIDER_1_MEAS.store(mot1_measured, Ordering::Relaxed);
@@ -521,7 +496,7 @@ async fn midi_send<'d, T: Instance + 'd>(class: &mut midi::Sender<'d, Driver<'d,
 
 /// Read the status of the capacitive touch sensor over I2C
 #[embassy_executor::task]
-async fn get_touch(i2c: I2c<'static, mode::Async, i2c::mode::Master>, sleep1: Output<'static>, sleep2: Output<'static>, sleep3: Output<'static>, sleep4: Output<'static>, sleep5: Output<'static>) { // was I2c<'static, I2C1, DMA1_CH4, DMA1_CH5>, Output<'static, AnyPin>
+async fn get_touch(i2c: I2c<'static, mode::Async, i2c::mode::Master>, sleep1: Output<'static>, sleep2: Output<'static>, sleep3: Output<'static>, sleep4: Output<'static>, sleep5: Output<'static>) {
     let mut data = [0u8; 1];
     let mut i2c_task = i2c;
     let mut sleep1_obj = sleep1;
@@ -559,16 +534,7 @@ async fn get_touch(i2c: I2c<'static, mode::Async, i2c::mode::Master>, sleep1: Ou
 }
 
 /// Enable a motor by enabling the PWM channels
-fn enable_motor<T: GeneralInstance4Channel>(pwm: &mut SimplePwm<T>, motor: char) { // had <T: CaptureCompare16bitInstance>
-    // let channels = match motor {
-    //     'a' => [Channel::Ch1, Channel::Ch2],
-    //     'b' => [Channel::Ch3, Channel::Ch4],
-    //     _ => [Channel::Ch1, Channel::Ch2], // TODO: Return an error instead of assuming motor a by default
-    // };
-
-    // pwm.enable(channels[0]);
-    // pwm.enable(channels[1]);
-
+fn enable_motor<T: GeneralInstance4Channel>(pwm: &mut SimplePwm<T>, motor: char) {
     if motor == 'a' {
         pwm.ch1().enable();
         pwm.ch2().enable();
@@ -579,58 +545,33 @@ fn enable_motor<T: GeneralInstance4Channel>(pwm: &mut SimplePwm<T>, motor: char)
     }
 }
 
-/*
-/// Disable a motor by disabling the PWM channels
-fn disable_motor<T: CaptureCompare16bitInstance>(pwm: &mut SimplePwm<T>, motor: char) {
-    let channels = match motor {
-        'a' => [Channel::Ch1, Channel::Ch2],
-        'b' => [Channel::Ch3, Channel::Ch4],
-        _ => [Channel::Ch1, Channel::Ch2], // TODO: Return an error instead of assuming motor a by default
-    };
-
-    pwm.disable(channels[0]);
-    pwm.disable(channels[1]);
-    set_motor_duty(pwm, motor, 0);
-}
-*/
-
 /// Set the duty cycle of a motor
-fn set_motor_duty<T: GeneralInstance4Channel>(pwm: &mut SimplePwm<T>, motor: char, duty: i16) { // had CaptureCompare16bitInstance
-    let clamped_duty = clamp(duty, -100, 100) as i32;
-    // let max = pwm.get_max_duty();
-    let max = pwm.max_duty_cycle();
-
-    // let channels = match motor {
-    //     'a' => [Channel::Ch1, Channel::Ch2],
-    //     'b' => [Channel::Ch3, Channel::Ch4],
-    //     _ => [Channel::Ch1, Channel::Ch2], // TODO: Return an error instead of assuming motor a by default
-    // };
-
-    // info!("Motor: {}", motor);
-    // info!("Clamped Duty: {}", clamped_duty);
+fn set_motor_duty<T: GeneralInstance4Channel>(pwm: &mut SimplePwm<T>, motor: char, duty: i16) {
+    let clamped_duty = clamp(duty, -100, 100) as i8;
+    let clamped_duty_abs = clamped_duty.unsigned_abs();
 
     if motor == 'a' {
         if duty == 0 {
-            pwm.ch1().set_duty_cycle(0); // might be able to replace with set_duty_cycle_fully_off
-            pwm.ch2().set_duty_cycle(0); // might be able to replace with set_duty_cycle_fully_off
+            pwm.ch1().set_duty_cycle_fully_off(); // might be able to replace with set_duty_cycle_fully_off
+            pwm.ch2().set_duty_cycle_fully_off(); // might be able to replace with set_duty_cycle_fully_off
         } else if duty <= 0 {
-            pwm.ch1().set_duty_cycle(0);
-            pwm.ch2().set_duty_cycle(clamped_duty.unsigned_abs() as u16 * max / 100);
+            pwm.ch1().set_duty_cycle_fully_off();
+            pwm.ch2().set_duty_cycle_percent(clamped_duty_abs);
         } else {
-            pwm.ch1().set_duty_cycle(clamped_duty.unsigned_abs() as u16 * max / 100);
-            pwm.ch2().set_duty_cycle(0);
+            pwm.ch1().set_duty_cycle_percent(clamped_duty_abs);
+            pwm.ch2().set_duty_cycle_fully_off();
         }
     }
     if motor == 'b' {
         if duty == 0 {
-            pwm.ch3().set_duty_cycle(0); // might be able to replace with set_duty_cycle_fully_off
-            pwm.ch4().set_duty_cycle(0); // might be able to replace with set_duty_cycle_fully_off
+            pwm.ch3().set_duty_cycle_fully_off(); // might be able to replace with set_duty_cycle_fully_off
+            pwm.ch4().set_duty_cycle_fully_off(); // might be able to replace with set_duty_cycle_fully_off
         } else if duty <= 0 {
-            pwm.ch3().set_duty_cycle(0);
-            pwm.ch4().set_duty_cycle(clamped_duty.unsigned_abs() as u16 * max / 100);
+            pwm.ch3().set_duty_cycle_fully_off();
+            pwm.ch4().set_duty_cycle_percent(clamped_duty_abs);
         } else {
-            pwm.ch3().set_duty_cycle(clamped_duty.unsigned_abs() as u16 * max / 100);
-            pwm.ch4().set_duty_cycle(0);
+            pwm.ch3().set_duty_cycle_percent(clamped_duty_abs);
+            pwm.ch4().set_duty_cycle_fully_off();
         }
     }
 }
